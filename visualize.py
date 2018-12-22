@@ -7,6 +7,9 @@ import pdb
 import time
 import argparse
 
+import pickle
+from functools import partial
+
 import sys
 import cv2
 
@@ -44,7 +47,9 @@ def main(args=None):
 	sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=1, drop_last=False)
 	dataloader_val = DataLoader(dataset_val, num_workers=1, collate_fn=collater, batch_sampler=sampler_val)
 
-	retinanet = torch.load(parser.model)
+	pickle.load = partial(pickle.load, encoding="latin1")
+	pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
+	retinanet = torch.load(parser.model, pickle_module=pickle)
 
 	use_gpu = True
 
@@ -61,7 +66,11 @@ def main(args=None):
 		cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 2)
 		cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
+	output_numbers = 0
+
 	for idx, data in enumerate(dataloader_val):
+
+		output_numbers += 1
 
 		with torch.no_grad():
 			st = time.time()
@@ -90,8 +99,7 @@ def main(args=None):
 				print(label_name)
 
 			cv2.imshow('img', img)
-			cv2.waitKey(0)
-
+			cv2.waitKey(1)
 
 
 if __name__ == '__main__':
